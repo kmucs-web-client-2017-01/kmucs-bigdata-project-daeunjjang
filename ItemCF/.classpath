@@ -92,5 +92,6 @@
 	<classpathentry kind="lib" path="/usr/local/hadoop-2.6.1/share/hadoop/yarn/hadoop-yarn-server-resourcemanager-2.6.1.jar"/>
 	<classpathentry kind="lib" path="/usr/local/hadoop-2.6.1/share/hadoop/yarn/hadoop-yarn-server-tests-2.6.1.jar"/>
 	<classpathentry kind="lib" path="/usr/local/hadoop-2.6.1/share/hadoop/yarn/hadoop-yarn-server-web-proxy-2.6.1.jar"/>
+	<classpathentry kind="lib" path="/usr/local/hadoop-2.6.1/share/hadoop/yarn"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

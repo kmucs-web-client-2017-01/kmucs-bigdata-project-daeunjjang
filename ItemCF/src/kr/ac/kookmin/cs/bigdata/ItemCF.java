@@ -59,16 +59,14 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
-            for (String token: value.toString().split("\n")) {
             	try{
-            		JSONObject jsonObject = new JSONObject(token);
+            		JSONObject jsonObject = new JSONObject(value.toString());
             		word.set((String) jsonObject.get("asin"));
             		context.write(word, new DoubleWritable(jsonObject.getDouble("overall")));
             	}
               catch (JSONException j) {
               j.printStackTrace();
               }
-            }
             }
         }
 

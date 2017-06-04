@@ -51,6 +51,106 @@ public class ItemCF extends Configured implements Tool {
       
         return 0;
     }
+    
+    
+    public static class Map1 extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+            
+        }
+    }
+
+    public static class Reduce1 extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    public static class Map2 extends Mapper<LongWritable, Text, Text, Text> {
+        
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+            
+        }
+    }
+
+    public static class Reduce2 extends Reducer<Text, Text, Text, Text> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // Job3
+    public static class Map3 extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+            
+        }
+    }
+
+    public static class Reduce3 extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // Job4
+    public static class Map4 extends Mapper<LongWritable, Text, Text, Text> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class Reduce4 extends Reducer<Text, Text, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // Job5
+    public static class Map5 extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class Reduce5 extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // Job6
+    public static class Map6 extends Mapper<LongWritable, Text, Text, Text> {
+    	
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class Reduce6 extends Reducer<Text, Text, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
    
     public static class Map extends Mapper<LongWritable, Text, Text, DoubleWritable> {
         private final static DoubleWritable ONE = new DoubleWritable(1);

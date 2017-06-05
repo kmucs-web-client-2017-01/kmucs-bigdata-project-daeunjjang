@@ -325,6 +325,9 @@ public class ItemCF extends Configured implements Tool {
                     innerProduct += Double.parseDouble(mapScore[1]);
             }
             
+            if (innerProduct == 0)
+            	return ;
+            
             similarity = innerProduct / vectorSize;
             
             context.write(key, new DoubleWritable(similarity));

@@ -105,6 +105,18 @@ public class ItemCF extends Configured implements Tool {
         
         jobOverallProductSimilarity.waitForCompletion(true);
 
+        /* Exclude empty review case from Item-Item CF calculate */
+        Job jobBlankFiltering = Job.getInstance(getConf());
+        jobBlankFiltering.setJarByClass(ItemCF.class);
+        MultipleInputs.addInputPath(jobBlankFiltering, new Path(outputPath+"/overallProductSimilarity"), TextInputFormat.class, MapBlankFilteringGetOverallProductSimilarity.class);
+        MultipleInputs.addInputPath(jobBlankFiltering, new Path(outputPath+"/similarity"), TextInputFormat.class, MapBlankFilteringGetSimilarity.class);
+        
+        FileOutputFormat.setOutputPath(jobBlankFiltering, new Path(outputPath+"/blankFiltering"));
+        jobBlankFiltering.setReducerClass(ReduceBlankFiltering.class);
+        jobBlankFiltering.setOutputKeyClass(Text.class);
+        jobBlankFiltering.setOutputValueClass(Text.class);
+        
+        jobBlankFiltering.waitForCompletion(true);
         
         return 0;
     }
@@ -342,7 +354,9 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
+            String[] userRating = value.toString().split("\t");
         	
+        	context.write(new Text(userRating[0]), new Text("OverallProductSimilarity," + userRating[1]));
         }
     }
     
@@ -350,14 +364,33 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
+        	String[] asinScore = value.toString().split("\t");
         	
+        	context.write(new Text(asinScore[0]), new Text("Similarity," + asinScore[1]));
         }
     }
 
     public static class ReduceBlankFiltering extends Reducer<Text, Text, Text, Text> {
         public void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
+        	double overallProductSimilarity = 0;
+        	double similarity = 0;
         	
+            for (Text val : values) {
+            	String[] mapScore = val.toString().split(",");
+            	
+            	if(mapScore[0].equals("OverallProductSimilarity"))
+            		overallProductSimilarity = Double.parseDouble(mapScore[1]);
+            	else if(mapScore[0].equals("Similarity"))
+            		similarity = Double.parseDouble(mapScore[1]);
+            	
+            	if(overallProductSimilarity == EMPTY_REVIEW)
+            		return ;
+            }
+            
+            Configuration conf = context.getConfiguration();
+            
+            context.write(new Text(conf.get("user")), new Text(overallProductSimilarity+","+similarity));
         }
     }
     

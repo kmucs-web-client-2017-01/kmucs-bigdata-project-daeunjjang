@@ -131,6 +131,23 @@ public class ItemCF extends Configured implements Tool {
         
         jobBlankFiltering.waitForCompletion(true);
         
+        /* Calculate how this customer rate the item by Item-Item CF rating. */
+        Job jobRating = Job.getInstance(getConf());
+        jobRating.setJarByClass(ItemCF.class);
+        jobRating.setOutputKeyClass(Text.class);
+        jobRating.setOutputValueClass(Text.class);
+        
+        jobRating.setMapperClass(MapRating.class);
+        jobRating.setReducerClass(ReduceRaiting.class);
+        
+        jobRating.setInputFormatClass(TextInputFormat.class);
+        jobRating.setOutputFormatClass(TextOutputFormat.class);
+        
+        FileInputFormat.addInputPath(jobRating, new Path(outputPath+"/blankFiltering"));
+        FileOutputFormat.setOutputPath(jobRating, new Path(outputPath+"/result"));
+        
+        jobRating.waitForCompletion(true);
+        
         return 0;
     }
     
@@ -431,14 +448,32 @@ public class ItemCF extends Configured implements Tool {
             @Override
             public void map(LongWritable key, Text value, Context context)
             throws IOException, InterruptedException {
-                
+                String[] userScore = value.toString().split("\t");
+            	String user = userScore[0];
+            	String score = userScore[1];
+            	
+            	context.write(new Text(user), new Text(score));
             }
         }
 
     public static class ReduceRaiting extends Reducer<Text, Text, Text, DoubleWritable> {
         public void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
+        	double overallProductSimilaritySum = 0;
+        	double similaritySum = 0;
         	
+            for (Text val : values) {
+            	String[] numerDenno = val.toString().split(",");
+            	
+            	overallProductSimilaritySum += Double.parseDouble(numerDenno[0]);
+            	similaritySum += Double.parseDouble(numerDenno[1]);
+            }
+            
+            double rating = overallProductSimilaritySum / similaritySum;
+            
+            Configuration conf = context.getConfiguration();
+            
+            context.write(new Text("(" + key + "," + conf.get("asin") + ")"), new DoubleWritable(rating));
         }
     }
 }

@@ -75,6 +75,37 @@ public class ItemCF extends Configured implements Tool {
         
         jobItemList.waitForCompletion(true);
         
+        /* Get each overall pair's InnerProduct to calculate Similarity */
+        Job jobInnerProduct = Job.getInstance(getConf());
+        jobInnerProduct.setJarByClass(ItemCF.class);
+        jobInnerProduct.setOutputKeyClass(Text.class);
+        jobInnerProduct.setOutputValueClass(DoubleWritable.class);
+        
+        jobInnerProduct.setMapperClass(MapInnerProduct.class);
+        jobInnerProduct.setReducerClass(ReduceInnerProduct.class);
+        
+        jobInnerProduct.setInputFormatClass(TextInputFormat.class);
+        jobInnerProduct.setOutputFormatClass(TextOutputFormat.class);
+        
+        FileInputFormat.addInputPath(jobInnerProduct, new Path(outputPath+"/itemList"));
+        FileOutputFormat.setOutputPath(jobInnerProduct, new Path(outputPath+"/innerProduct"));
+        
+        jobInnerProduct.waitForCompletion(true);
+
+        /* Get Overall Product Similarity to get Item-CF rating */
+        Job jobOverallProductSimilarity = Job.getInstance(getConf());
+        jobOverallProductSimilarity.setJarByClass(ItemCF.class);
+        MultipleInputs.addInputPath(jobOverallProductSimilarity, new Path(inputPath), TextInputFormat.class, MapOverallProductSimilarityGetOverall.class);
+        MultipleInputs.addInputPath(jobOverallProductSimilarity, new Path(outputPath+"/similarity"), TextInputFormat.class, MapOverallProductSimilarityGetSimilarity.class);
+        
+        FileOutputFormat.setOutputPath(jobOverallProductSimilarity, new Path(outputPath+"/overallProductSimilarity"));
+        jobOverallProductSimilarity.setReducerClass(ReduceOverallProductSimilarity.class);
+        jobOverallProductSimilarity.setOutputKeyClass(Text.class);
+        jobOverallProductSimilarity.setOutputValueClass(DoubleWritable.class);
+        
+        jobOverallProductSimilarity.waitForCompletion(true);
+
+        
         return 0;
     }
     

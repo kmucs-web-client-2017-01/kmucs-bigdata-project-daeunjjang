@@ -1,5 +1,8 @@
 package kr.ac.kookmin.cs.bigdata;
 
+import java.io.IOException;
+import java.util.Arrays;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -16,15 +19,17 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.json.JSONObject;
 
 public class ItemCF extends Configured implements Tool {
     public static void main(String[] args) throws Exception {
         System.out.println(Arrays.toString(args));
+        
         int res = ToolRunner.run(new Configuration(), new ItemCF(), args);
         
         System.exit(res);
     }
-    
+
     @Override
     public int run(String[] args) throws Exception {
         System.out.println(Arrays.toString(args));
@@ -32,7 +37,10 @@ public class ItemCF extends Configured implements Tool {
         return 0;
     }
     
-    public static class Map1 extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+    // jobVectorSize
+    public static class MapVectorSize extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+    	private Text asin = new Text();
+    	private DoubleWritable overall = new DoubleWritable();
         
         @Override
         public void map(LongWritable key, Text value, Context context)
@@ -40,11 +48,150 @@ public class ItemCF extends Configured implements Tool {
             
         }
     }
-    
-    public static class Reduce1 extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+
+    public static class ReduceVectorSize extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
         public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
         throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // jobItemList
+    public static class MapItemList extends Mapper<LongWritable, Text, Text, Text> {
+    	private Text reviewerID = new Text();
+    	private Text asinScore = new Text();
+    	
+        
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class ReduceItemList extends Reducer<Text, Text, Text, Text> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // jobInnerProduct
+    public static class MapInnerProduct extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+    	private String asin;
+    	
+    	@Override
+        protected void setup(Mapper.Context context)
+            throws IOException, InterruptedException {
+                
+        }
+    	
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class ReduceInnerProduct extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // jobSimilarity
+    public static class MapSimilarityGetVectorSize extends Mapper<LongWritable, Text, Text, Text> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    public static class MapSmilarityGetInnerProduct extends Mapper<LongWritable, Text, Text, Text> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class ReduceSmilarity extends Reducer<Text, Text, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // jobOverallProductSimilarity
+    public static class MapOverallProductSimilarityGetOverall extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        
+    	@Override
+        protected void setup(Mapper.Context context)
+            throws IOException, InterruptedException {
             
+        }
+    	
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    public static class MapOverallProductSimilarityGetSimilarity extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class ReduceOverallProductSimilarity extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // jobBlankFiltering
+    public static class MapBlankFilteringGetOverallProductSimilarity extends Mapper<LongWritable, Text, Text, Text> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    public static class MapBlankFilteringGetSimilarity extends Mapper<LongWritable, Text, Text, Text> {
+        @Override
+        public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+
+    public static class ReduceBlankFiltering extends Reducer<Text, Text, Text, Text> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
+        }
+    }
+    
+    // jobRating
+    public static class MapRating extends Mapper<LongWritable, Text, Text, Text> {
+            @Override
+            public void map(LongWritable key, Text value, Context context)
+            throws IOException, InterruptedException {
+                
+            }
+        }
+
+    public static class ReduceRaiting extends Reducer<Text, Text, Text, DoubleWritable> {
+        public void reduce(Text key, Iterable<Text> values, Context context)
+        throws IOException, InterruptedException {
+        	
         }
     }
 }

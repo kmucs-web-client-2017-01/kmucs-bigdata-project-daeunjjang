@@ -25,7 +25,11 @@ public class ItemCF extends Configured implements Tool {
     public static void main(String[] args) throws Exception {
         System.out.println(Arrays.toString(args));
         
-        int res = ToolRunner.run(new Configuration(), new ItemCF(), args);
+        Configuration conf = new Configuration();
+        conf.set("user", args[2]);
+        conf.set("asin", args[3]);
+        
+        int res = ToolRunner.run(conf, new ItemCF(), args);
         
         System.exit(res);
     }
@@ -33,6 +37,26 @@ public class ItemCF extends Configured implements Tool {
     @Override
     public int run(String[] args) throws Exception {
         System.out.println(Arrays.toString(args));
+        
+        String inputPath  = args[0];
+        String outputPath = args[1];
+        
+        /* Get each item VectorSize to calculate Similarity */
+        Job jobVectorSize = Job.getInstance(getConf());
+        jobVectorSize.setJarByClass(ItemCF.class);
+        jobVectorSize.setOutputKeyClass(Text.class);
+        jobVectorSize.setOutputValueClass(DoubleWritable.class);
+        
+        jobVectorSize.setMapperClass(MapVectorSize.class);
+        jobVectorSize.setReducerClass(ReduceVectorSize.class);
+        
+        jobVectorSize.setInputFormatClass(TextInputFormat.class);
+        jobVectorSize.setOutputFormatClass(TextOutputFormat.class);
+        
+        FileInputFormat.addInputPath(jobVectorSize, new Path(inputPath));
+        FileOutputFormat.setOutputPath(jobVectorSize, new Path(outputPath+"/vectorSize"));
+        
+        jobVectorSize.waitForCompletion(true);
         
         return 0;
     }
@@ -45,14 +69,31 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
-            
+            try {
+                JSONObject jsonObject = new JSONObject(value.toString());
+                
+                asin.set(jsonObject.getString("asin"));
+                overall.set(jsonObject.getDouble("overall"));
+                
+                context.write(asin, overall);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public static class ReduceVectorSize extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
         public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
         throws IOException, InterruptedException {
-        	
+        	double squareSum = 0.0F;
+            
+            for (DoubleWritable val : values){
+                double tmp = val.get();
+                squareSum += tmp*tmp;
+            }
+            
+            double sqrtSquareSum = Math.sqrt(squareSum);
+            context.write(key, new DoubleWritable(sqrtSquareSum));
         }
     }
     

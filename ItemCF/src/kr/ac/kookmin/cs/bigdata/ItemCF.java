@@ -143,25 +143,58 @@ public class ItemCF extends Configured implements Tool {
     
     // jobInnerProduct
     public static class MapInnerProduct extends Mapper<LongWritable, Text, Text, DoubleWritable> {
-    	private String asin;
-    	
-    	@Override
+        private String asin;
+        
+        @Override
         protected void setup(Mapper.Context context)
-            throws IOException, InterruptedException {
-                
+        throws IOException, InterruptedException {
+            
+            // get the searchingWord from configuration
+            asin = context.getConfiguration().get("asin");
         }
-    	
+        
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
-        	
+            String[] userAsinScores;
+            String asinScores;
+            
+            userAsinScores = value.toString().split("\t");
+            asinScores = userAsinScores[1];
+            
+            String[] asinScore = asinScores.split(" ");
+            
+            double overall1 = 0;
+            double overall2 = 0;
+            
+            for(int i=0; i<asinScore.length; i++){
+                String[] tmp1 = asinScore[i].split(",");
+                for(int j=i+1; j<asinScore.length; j++){
+                    String[] tmp2 = asinScore[j].split(",");
+                    
+                    if(tmp2[0].equals(asin))
+                        tmp2[0] = tmp1[0];
+                    else if(!tmp1[0].equals(asin))
+                        continue;
+                    
+                    overall1 = Double.parseDouble(tmp1[1]);
+                    overall2 = Double.parseDouble(tmp2[1]);
+                    
+                    context.write(new Text(tmp2[0]), new DoubleWritable(overall1*overall2));
+                }
+            }
         }
     }
-
+    
     public static class ReduceInnerProduct extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
         public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
         throws IOException, InterruptedException {
-        	
+            double overallSum = 0.0F;
+            
+            for (DoubleWritable val : values)
+                overallSum += val.get();
+            
+            context.write(key, new DoubleWritable(overallSum));
         }
     }
     

@@ -420,6 +420,8 @@ public class ItemCF extends Configured implements Tool {
     }
 
     public static class ReduceBlankFiltering extends Reducer<Text, Text, Text, Text> {
+        private final int EMPTY_REVIEW = -1;
+        
         public void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
         	double overallProductSimilarity = 0;

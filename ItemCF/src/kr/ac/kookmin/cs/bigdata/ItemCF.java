@@ -167,17 +167,36 @@ public class ItemCF extends Configured implements Tool {
     
     // jobOverallProductSimilarity
     public static class MapOverallProductSimilarityGetOverall extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        private Text asin = new Text();
+        private DoubleWritable overall = new DoubleWritable();
         
-    	@Override
+        private String user;
+        
+        @Override
         protected void setup(Mapper.Context context)
-            throws IOException, InterruptedException {
+        throws IOException, InterruptedException {
             
+            // get the searchingWord from configuration
+            user = context.getConfiguration().get("user");
         }
-    	
+        
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
-        	
+            try {
+                JSONObject jsonObject = new JSONObject(value.toString());
+                
+                // ignore it if it's not my review
+                if(!jsonObject.getString("reviewerID").equals(user))
+                    return ;
+                
+                asin.set(jsonObject.getString("asin"));
+                overall.set(jsonObject.getDouble("overall"));
+                
+                context.write(asin, overall);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -185,14 +204,31 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
-        	
+            String[] asinSimilarity = value.toString().split("\t");
+            String asin = asinSimilarity[0];
+            String similarity = asinSimilarity[1];
+            
+            context.write(new Text(asin), new DoubleWritable(Double.parseDouble(similarity)));
         }
     }
-
+    
     public static class ReduceOverallProductSimilarity extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        private final int EMPTY_REVIEW = -1;
+        
         public void reduce(Text key, Iterable<DoubleWritable> values, Context context)
         throws IOException, InterruptedException {
-        	
+            double rating_numer = 1;
+            
+            int count = 0;
+            for (DoubleWritable val : values){
+                rating_numer *= val.get();
+                count++;
+            }
+            
+            if(count == 1)
+                rating_numer = EMPTY_REVIEW;
+            
+            context.write(new Text(key), new DoubleWritable(rating_numer));
         }
     }
     

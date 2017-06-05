@@ -106,14 +106,38 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
+        	String asin;
+        	String overall;
+        	String reviewerid;
         	
+            for (String token: value.toString().split("\n")) {
+                try {
+                    JSONObject jsonObject = new JSONObject(token);
+                    
+                    reviewerid = jsonObject.getString("reviewerID");
+                    asin = jsonObject.getString("asin").toString();
+                    overall = jsonObject.get("overall").toString();
+                    		
+                    reviewerID.set(reviewerid);
+                    asinScore.set(asin + "," + overall);
+                    
+                    context.write(reviewerID, asinScore);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     public static class ReduceItemList extends Reducer<Text, Text, Text, Text> {
         public void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
+        	String asinScores = "";
         	
+            for (Text val : values)
+            	asinScores += val.toString() + " ";
+            
+            context.write(key, new Text(asinScores));
         }
     }
     

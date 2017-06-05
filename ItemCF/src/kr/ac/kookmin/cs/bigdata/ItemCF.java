@@ -91,6 +91,19 @@ public class ItemCF extends Configured implements Tool {
         FileOutputFormat.setOutputPath(jobInnerProduct, new Path(outputPath+"/innerProduct"));
         
         jobInnerProduct.waitForCompletion(true);
+        
+        /* Get Similarity to get Item-CF rating */
+        Job jobSimilarity = Job.getInstance(getConf());
+        jobSimilarity.setJarByClass(ItemCF.class);
+        MultipleInputs.addInputPath(jobSimilarity, new Path(outputPath+"/vectorSize"), TextInputFormat.class, MapSimilarityGetVectorSize.class);
+        MultipleInputs.addInputPath(jobSimilarity, new Path(outputPath+"/innerProduct"), TextInputFormat.class, MapSmilarityGetInnerProduct.class);
+        
+        FileOutputFormat.setOutputPath(jobSimilarity, new Path(outputPath+"/similarity"));
+        jobSimilarity.setReducerClass(ReduceSmilarity.class);
+        jobSimilarity.setOutputKeyClass(Text.class);
+        jobSimilarity.setOutputValueClass(Text.class);
+        
+        jobSimilarity.waitForCompletion(true);
 
         /* Get Overall Product Similarity to get Item-CF rating */
         Job jobOverallProductSimilarity = Job.getInstance(getConf());
@@ -263,7 +276,9 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
-        	
+            String[] asinScore = value.toString().split("\t");
+            
+            context.write(new Text(asinScore[0]), new Text("VectorSize,"+asinScore[1]));
         }
     }
     
@@ -271,14 +286,31 @@ public class ItemCF extends Configured implements Tool {
         @Override
         public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
-        	
+            String[] asinScore = value.toString().split("\t");
+            
+            context.write(new Text(asinScore[0]), new Text("InnerProduct,"+asinScore[1]));
         }
     }
-
+    
     public static class ReduceSmilarity extends Reducer<Text, Text, Text, DoubleWritable> {
         public void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
-        	
+            double similarity = 0;
+            double vectorSize = 0;
+            double innerProduct = 0;
+            
+            for (Text val : values){
+                String[] mapScore = val.toString().split(",");
+                
+                if(mapScore[0].equals("VectorSize"))
+                    vectorSize = Double.parseDouble(mapScore[1]);
+                else if(mapScore[0].equals("InnerProduct"))
+                    innerProduct += Double.parseDouble(mapScore[1]);
+            }
+            
+            similarity = innerProduct / vectorSize;
+            
+            context.write(key, new DoubleWritable(similarity));
         }
     }
     

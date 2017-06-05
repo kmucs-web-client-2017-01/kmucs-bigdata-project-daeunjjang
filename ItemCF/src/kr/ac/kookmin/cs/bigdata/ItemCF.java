@@ -58,6 +58,23 @@ public class ItemCF extends Configured implements Tool {
         
         jobVectorSize.waitForCompletion(true);
         
+        /* Get job-Item list to calculate each overall pair's InnerProduct */ 
+        Job jobItemList = Job.getInstance(getConf());
+        jobItemList.setJarByClass(ItemCF.class);
+        jobItemList.setOutputKeyClass(Text.class);
+        jobItemList.setOutputValueClass(Text.class);
+        
+        jobItemList.setMapperClass(MapItemList.class);
+        jobItemList.setReducerClass(ReduceItemList.class);
+        
+        jobItemList.setInputFormatClass(TextInputFormat.class);
+        jobItemList.setOutputFormatClass(TextOutputFormat.class);
+        
+        FileInputFormat.addInputPath(jobItemList, new Path(inputPath));
+        FileOutputFormat.setOutputPath(jobItemList, new Path(outputPath+"/itemList"));
+        
+        jobItemList.waitForCompletion(true);
+        
         return 0;
     }
     
